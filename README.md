@@ -16,7 +16,7 @@ The maximum weighted matching algorithm finds a matching in a graph with the max
 ## Installation
 
 ```bash
-go get maximum-weighted-matching
+go get github.com/std000/mvm-go
 ```
 
 ## Usage
@@ -28,7 +28,7 @@ package main
 
 import (
     "fmt"
-    "maximum-weighted-matching"
+    "github.com/std000/mvm-go"
 )
 
 func main() {
