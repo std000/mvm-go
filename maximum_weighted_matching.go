@@ -173,10 +173,9 @@ func (mwm *MaximumWeightedMatching) maxWeightMatchingInternal(edges []GraphEdge,
 		bestedge[i] = -1
 	}
 
+	// A nil entry means "no list of least-slack edges" (None in the
+	// reference implementation); an empty non-nil slice is a valid list.
 	blossombestedges := make([][]int, nvertex*2)
-	for i := 0; i < nvertex*2; i++ {
-		blossombestedges[i] = make([]int, 0)
-	}
 
 	unusedblossoms := make([]int, 0, nvertex)
 	for i := nvertex; i < nvertex*2; i++ {
@@ -404,9 +403,11 @@ func (mwm *MaximumWeightedMatching) maxWeightMatchingInternal(edges []GraphEdge,
 
 		for _, it := range path {
 			var nblists [][]int
-			if blossombestedges[it] != nil && len(blossombestedges[it]) == 0 {
+			if blossombestedges[it] != nil {
 				nblists = [][]int{blossombestedges[it]}
 			} else {
+				// This sub-blossom has no list of least-slack edges;
+				// get the information from its vertices.
 				nblists = make([][]int, 0)
 				for i, blV := range blossomLeaves(it) {
 					nblists = append(nblists, make([]int, 0))
@@ -430,7 +431,7 @@ func (mwm *MaximumWeightedMatching) maxWeightMatchingInternal(edges []GraphEdge,
 					}
 				}
 			}
-			blossombestedges[it] = make([]int, 0)
+			blossombestedges[it] = nil
 			bestedge[it] = -1
 		}
 
@@ -708,7 +709,7 @@ func (mwm *MaximumWeightedMatching) maxWeightMatchingInternal(edges []GraphEdge,
 
 			// Reset blossom best edges
 			for i := 0; i < nvertex*2; i++ {
-				blossombestedges[i] = make([]int, 0)
+				blossombestedges[i] = nil
 			}
 
 			// Reset allowed edges
@@ -859,12 +860,17 @@ func (mwm *MaximumWeightedMatching) maxWeightMatchingInternal(edges []GraphEdge,
 					if !maxCardinality {
 						panic("assertion failed")
 					}
+					// No further improvement possible: delta is
+					// max(0, min(dualvar)) over the vertices.
 					deltatype = 1
-					delta = 0
+					delta = math.MaxInt64
 					for v := 0; v < nvertex; v++ {
-						if dualvar[v] > delta {
+						if dualvar[v] < delta {
 							delta = dualvar[v]
 						}
+					}
+					if delta < 0 {
+						delta = 0
 					}
 				}
 
